@@ -7,6 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
+Const color As String = "jVeY7UZj"
+Const cella As String = "A1"
+Const feltetel As String = "+"
 
 'Figyeli a válotzásokat a "Tartomany" részben
 Private Sub Worksheet_Change(ByVal Target As Range)
@@ -15,18 +18,18 @@ End Sub
 
 'A "GAZDINFO" táblában és a "Tartomany" területen változtatja a sor szinét, adott feltételre
 Sub Szinezes()
-Attribute Szinezes.VB_ProcData.VB_Invoke_Func = "e\n14"
     Dim cella As Range
     Dim oszlop As Integer
 
     With GAZDINFO
         For Each cella In Tartomany
-            If cella.Text = "+" Then
-                For oszlop = 1 To 5
-                    Cells(cella.row, oszlop).Interior.Color = 5287936
+            If cella.Text = feltetel Then
+                For oszlop = 1 To Sorok.Columns.Count
+                    Cells(cella.row, oszlop).Interior.color = 5287936
+                    'Range("A5").Interior.color = 5287936
                 Next
             Else
-                For oszlop = 1 To 5
+                For oszlop = 1 To Sorok.Columns.Count
                     Cells(cella.row, oszlop).Interior.ColorIndex = 2
                 Next
             End If
@@ -34,14 +37,76 @@ Attribute Szinezes.VB_ProcData.VB_Invoke_Func = "e\n14"
     End With
 End Sub
 
-'Tartomány funkció, a 400-as hiba elkerülése érdekében
-Function Tartomany() As Range
-    Set t1 = Range("B4:B12")
-    Set t2 = Range("B14:B25")
-    Set t3 = Range("B27:B44")
-    Set t4 = Range("B46:B47")
-    Set t5 = Range("B50:B58")
-    Set t6 = Range("B60:B63")
+'Tartomány kijelölése
+Public Sub Kijeloles()
+    Dim jeloles As Range
+    Dim jeloles2 As Range
     
-    Set Tartomany = Union(t1, t2, t3, t4, t5, t6)
+    'Adat bekérési ablak
+    On Error Resume Next
+    Set jeloles = Application.InputBox(prompt:="Jelöld ki az ellenörzésre szánt területet:", Type:=8)
+    On Error GoTo 0
+
+    If jeloles Is Nothing Then
+        Exit Sub
+    Else
+        'Adat eltárolása
+        Sheets(color).Range(cella).Value = jeloles.Address
+    End If
+    
+    '------------
+    On Error Resume Next
+    'Adat bekérési ablak
+    Set jeloles2 = Application.InputBox(prompt:="Jelöld ki a színezésre szánt oszlopokat:", Type:=8)
+    On Error GoTo 0
+    
+    If jeloles2 Is Nothing Then
+        Exit Sub
+    Else
+        'Adat eltárolása
+        Sheets(color).Range("A2").Value = jeloles2.Address
+    End If
+
+End Sub
+
+Public Function Tartomany() As Range
+    Munkalap (color)
+    Call Adat
+    'Adat
+    Worksheets(color).Visible = True
+    'Sheets(color).Visible = xlVeryHidden
+    Set Tartomany = Range(Worksheets(color).Range(cella))
+    
+End Function
+
+Public Function Sorok() As Range
+    Set Sorok = Range(Worksheets(color).Range("A2"))
+    
+End Function
+
+'Munkalap létezésének vizsgálata
+Function Munkalap(Name As String) As Worksheet
+    On Error Resume Next
+    Set Munkalap = ThisWorkbook.Worksheets(Name)
+
+    If Munkalap Is Nothing Then
+        Set Munkalap = ThisWorkbook.Worksheets.Add
+        Munkalap.Name = Name
+        Call Kijeloles
+    End If
+
+End Function
+
+'Tartomány érték meglétének vizsgálata
+Function Adat() As Range
+ On Error Resume Next
+   Set Adat = Range(Worksheets(color).Range(cella))
+   
+    If Adat Is Nothing Then
+        Call Kijeloles
+    End If
+End Function
+
+Function test() As Range
+    MsgBox Sorok.Columns.Count
 End Function
